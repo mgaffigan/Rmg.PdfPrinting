@@ -1,5 +1,7 @@
 ﻿# C# PDF Printing
 
+[![Nuget](https://img.shields.io/nuget/v/Rmg.PdfPrinting)](https://www.nuget.org/packages/Rmg.PdfPrinting)
+
 API which uses [Windows.Data.Pdf](https://learn.microsoft.com/en-us/uwp/api/windows.data.pdf?view=winrt-22621) from C# to print a PDF file.
 
 No third party apps required - no additional licenses.  Only Windows.
