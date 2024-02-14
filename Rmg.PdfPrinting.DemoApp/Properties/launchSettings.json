@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Rmg.WinRTPdfPrinter.DemoApp": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\dev\\gitroot\\D2DPrintSample\\D2DPrintSample\\example.pdf\" \"Microsoft Print to PDF\""
+    }
+  }
+}
