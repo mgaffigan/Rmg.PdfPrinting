@@ -17,6 +17,6 @@ jobs:
       with:
         dotnet-version: 7.0.x
     - name: Build Rmg.PdfPrinting
-      run: dotnet pack WpfAppBar -c Release -p:Version=${{github.ref_name}}
+      run: dotnet pack Rmg.PdfPrinting -c Release -p:Version=${{github.ref_name}}
     - name: NugetPush Rmg.PdfPrinting
-      run: dotnet nuget push -s https://www.nuget.org/api/v2/package --api-key ${{secrets.MG_NUGET_SECRET}} WpfAppBar/bin/Release/Rmg.PdfPrinting.${{github.ref_name}}.nupkg
+      run: dotnet nuget push -s https://www.nuget.org/api/v2/package --api-key ${{secrets.MG_NUGET_SECRET}} Rmg.PdfPrinting/bin/Release/Rmg.PdfPrinting.${{github.ref_name}}.nupkg
