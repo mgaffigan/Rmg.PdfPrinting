@@ -22,9 +22,17 @@ var pdfPrinter = new PdfPrinter();
 await pdfPrinter.Print(printerName, pdfPath);
 ```
 
+## Convert to XPS
+
+You can also use this to convert a PDF to XPS:
+
+```csharp
+var pdfPrinter = new PdfPrinter();
+await pdfPrinter.ConvertToXps("input.pdf", "output.xps");
+```
+
 ## Future possibilites
 - WPF viewer control
-- PDF to XPS
 - PDF to PNG/TIFF/any WIC bitmap
 - netframework support
 - Earlier revisions of netcore

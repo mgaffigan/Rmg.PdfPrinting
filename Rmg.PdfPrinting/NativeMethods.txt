@@ -1,6 +1,7 @@
 ﻿ID2D1PrintControl
 IPrintDocumentPackageTargetFactory
 IPrintDocumentPackageTarget
+IXpsDocumentPackageTarget
 D3D11CreateDevice
 IDXGIDevice
 D2D1_FACTORY_OPTIONS
@@ -19,3 +20,4 @@ IConnectionPointContainer
 IPrintDocumentPackageStatusEvent
 E_FAIL
 S_FALSE
+ID_DOCUMENTPACKAGETARGET_MSXPS

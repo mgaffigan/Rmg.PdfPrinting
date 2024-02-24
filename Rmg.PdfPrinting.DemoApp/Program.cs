@@ -10,7 +10,7 @@ internal class Program
     {
         if (args.Length != 2)
         {
-            Console.Error.WriteLine("Usage: Rmg.WinRTPdfPrinter.DemoApp.exe example.pdf \"Printer Name\"");
+            Console.Error.WriteLine("Usage: Rmg.PdfPrinting.DemoApp.exe example.pdf \"Printer Name\"");
             return -1;
         }
 
@@ -30,7 +30,21 @@ internal class Program
 
     private static async Task RunAsync(string pdfPath, string printerName)
     {
-        var pdfPrinter = new PdfPrinter();
-        await pdfPrinter.Print(printerName, pdfPath);
+        try
+        {
+            var pdfPrinter = new PdfPrinter();
+            if (!printerName.EndsWith(".xps", StringComparison.OrdinalIgnoreCase))
+            {
+                await pdfPrinter.Print(printerName, pdfPath);
+            }
+            else
+            {
+                await pdfPrinter.ConvertToXps(pdfPath, printerName);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(ex.ToString());
+        }
     }
 }
