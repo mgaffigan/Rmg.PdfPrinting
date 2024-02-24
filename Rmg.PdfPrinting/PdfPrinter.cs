@@ -18,7 +18,6 @@ using Windows.Win32.Graphics.Dxgi;
 using Windows.Win32.Graphics.Imaging.D2D;
 using Windows.Win32.Storage.Xps.Printing;
 using Windows.Win32.System.WinRT.Pdf;
-using System.Runtime.InteropServices;
 using System.Net.NetworkInformation;
 using Windows.Win32.Graphics.Direct2D.Common;
 using Windows.ApplicationModel.Background;
@@ -60,13 +59,9 @@ public class PdfPrinter
         pWic = (IWICImagingFactory2)new WICImagingFactory();
     }
 
-
-    [Guid("cacaf262-9370-4615-a13b-9f5539da4c0a"), ComImport]
-    private class WICImagingFactory
-    {
-    }
-
-    public async Task Print(string printerName, string fileName, string jobName = null!, PrintTicket? ticket = null)
+    public Task Print(string printerName, string fileName, string? jobName = null, PrintTicket? ticket = null) 
+        => Print(printerName, fileName, jobName, ticket?.GetXmlStream());
+    public async Task Print(string printerName, string fileName, string? jobName, Stream? ticket)
     {
         if (string.IsNullOrWhiteSpace(jobName))
         {
@@ -79,15 +74,16 @@ public class PdfPrinter
     }
 
     public unsafe Task Print(string printerName, PdfDocument pdfDoc, string jobName = "PDF", PrintTicket? ticket = null)
+        => Print(printerName, pdfDoc, jobName, ticket?.GetXmlStream());
+    public unsafe Task Print(string printerName, PdfDocument pdfDoc, string jobName, Stream? ticket)
     {
         // Initialize the job
         ID2D1PrintControl printControl;
         PrintCompletionSource listener;
-        var tcs = new TaskCompletionSource();
         {
             // Create a factory for document print job.
             var documentTargetFactory = (IPrintDocumentPackageTargetFactory)new PrintDocumentPackageTargetFactory();
-            var ticketStream = ArrayToIStream(ticket?.GetXmlStream().ToArray());
+            var ticketStream = ticket is null ? null : new ManagedIStream(ticket);
             documentTargetFactory.CreateDocumentPackageTargetForPrintJob(
                 printerName, jobName, null, ticketStream, out var docTarget);
 
@@ -100,6 +96,13 @@ public class PdfPrinter
             d2dDevice.CreatePrintControl(pWic, docTarget, null, out printControl);
         }
 
+        RenderDocToPrintControl(pdfDoc, printControl);
+
+        return listener.Task;
+    }
+
+    private unsafe void RenderDocToPrintControl(PdfDocument pdfDoc, ID2D1PrintControl printControl)
+    {
         // Open the PDF Document
         PInvoke.PdfCreateRenderer(dxgiDevice, out var pPdfRendererNative).ThrowOnFailure();
         var renderParams = new PDF_RENDER_PARAMS();
@@ -124,63 +127,5 @@ public class PdfPrinter
         }
 
         printControl.Close();
-
-        return listener.Task;
-    }
-
-    [return: NotNullIfNotNull(nameof(data))]
-    private unsafe IStream? ArrayToIStream(byte[]? data)
-    {
-        if (data == null) return null;
-
-        PInvoke.CreateStreamOnHGlobal((HGLOBAL)null, true, out var stm).ThrowOnFailure();
-        uint sz = (uint)data.Length;
-        stm.SetSize(sz);
-        fixed (byte* pData = data)
-        {
-            uint cbWritten;
-            stm.Write(pData, sz, &cbWritten).ThrowOnFailure();
-            if (cbWritten != sz) throw new InvalidOperationException();
-        }
-        return stm;
-    }
-}
-
-internal class PrintCompletionSource : IPrintDocumentPackageStatusEvent
-{
-    private readonly TaskCompletionSource Source = new();
-    private IConnectionPoint ConnectionPoint;
-    private readonly uint cookie;
-
-    public Task Task => Source.Task;
-
-    public PrintCompletionSource(IConnectionPoint cp)
-    {
-        this.ConnectionPoint = cp;
-        cp.Advise(this, out cookie);
-    }
-
-    public unsafe void PackageStatusUpdated(PrintDocumentPackageStatus* packageStatus)
-    {
-        bool ended = false;
-        switch (packageStatus->Completion)
-        {
-            case PrintDocumentPackageCompletion.PrintDocumentPackageCompletion_InProgress:
-                break;
-            case PrintDocumentPackageCompletion.PrintDocumentPackageCompletion_Completed:
-                ended = Source.TrySetResult();
-                break;
-            case PrintDocumentPackageCompletion.PrintDocumentPackageCompletion_Canceled:
-                ended = Source.TrySetCanceled();
-                break;
-            case PrintDocumentPackageCompletion.PrintDocumentPackageCompletion_Failed:
-                ended = Source.TrySetException(Marshal.GetExceptionForHR(HRESULT.E_FAIL)!);
-                break;
-        }
-
-        if (ended)
-        {
-            ConnectionPoint.Unadvise(cookie);
-        }
     }
 }

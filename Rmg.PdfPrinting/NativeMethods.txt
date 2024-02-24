@@ -15,7 +15,7 @@ E_NOTIMPL
 S_OK
 IPdfRendererNative
 PdfCreateRenderer
-CreateStreamOnHGlobal
 IConnectionPointContainer
 IPrintDocumentPackageStatusEvent
 E_FAIL
+S_FALSE
