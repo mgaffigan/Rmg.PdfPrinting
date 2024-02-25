@@ -95,6 +95,7 @@ public partial class PdfPrinter
         // Open the PDF Document
         PInvoke.PdfCreateRenderer(dxgiDevice, out var pPdfRendererNative).ThrowOnFailure();
         var renderParams = new PDF_RENDER_PARAMS();
+        renderParams.IgnoreHighContrast = true;
 
         // Write pages
         for (uint pageIndex = 0; pageIndex < pdfDoc.PageCount; pageIndex++)
