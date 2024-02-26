@@ -1,25 +1,9 @@
-﻿using System;
-using System.IO;
-using System.Printing;
-using System.Security;
-using System.Windows;
-using System.Windows.Controls;
+﻿using System.IO;
 using Windows.Data.Pdf;
-using Windows.Devices.HumanInterfaceDevice;
-using Windows.Devices.I2c;
 using Windows.Storage;
 using Windows.Win32;
-using Windows.Win32.Foundation;
-using Windows.Win32.System.Com;
 using Windows.Win32.Graphics.Direct2D;
-using Windows.Win32.Graphics.Direct3D;
-using Windows.Win32.Graphics.Direct3D11;
-using Windows.Win32.Graphics.Dxgi;
-using Windows.Win32.Graphics.Imaging.D2D;
-using Windows.Win32.Storage.Xps.Printing;
 using Windows.Win32.System.WinRT.Pdf;
-using System.Runtime.InteropServices;
-using System.Net.NetworkInformation;
 using Windows.Win32.Graphics.Direct2D.Common;
 using Windows.Win32.Graphics.Imaging;
 using Windows.Win32.Graphics.DirectWrite;
@@ -86,7 +70,7 @@ public partial class PdfPrinter
             {
                 d2dContextForPrint.Clear(new D2D1_COLOR_F() { r = 1f, g = 1f, b = 1f, a = 1f });
             }
-            var pdfContext = !options.BW ? d2dContextForPrint : d2dContextForPrint;
+            var pdfContext = !options.BW ? d2dContextForPrint : new OneBppDeviceContext(d2dContextForPrint);
 
             var renderParams = new PDF_RENDER_PARAMS();
             renderParams.IgnoreHighContrast = true;
