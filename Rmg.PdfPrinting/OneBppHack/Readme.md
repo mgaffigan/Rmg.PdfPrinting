@@ -5,6 +5,7 @@
 Most uses of D2D are for screen, where RGB permits anti-aliased pretty text (or cleartype).
 
 Anti-aliased (default):
+
 ![Anti-aliased](Readme_antialiased.png)
 
 When printing to a 1bpp printer (a label printer or fax machine), the default behavior is
@@ -12,6 +13,7 @@ to rasterize the text to RGB/Grayscale then dither the resultant bitmap.  It pro
 on the side of the text.
 
 Dithered (🤮):
+
 ![Dithered](Readme_dithered.png)
 
 What is desired is that the text renderer directly work in black/white.  Fonts are 
@@ -19,6 +21,7 @@ specifically developed to handle this ([Font Hinting](https://en.wikipedia.org/w
 and the result is much better.
 
 Aliased (desired):
+
 ![Aliased text](Readme_aliased.png)
 
 ## How

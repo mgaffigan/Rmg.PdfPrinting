@@ -8,7 +8,7 @@ No third party apps required - no additional licenses.  Only Windows.
 
 PDF's are printed as vector.  Text and fonts are preserved.  Desktop and WinRT apps.
 
-## Key steps
+## Print a PDF
 
 1. Ensure project specifies a windows version in `csproj`: `<TargetFramework>net7.0-windows10.0.22621.0</TargetFramework>`
 1. Add NuGet package `Rmg.WinRTPdfPrinter`
@@ -74,7 +74,6 @@ for (uint pageIndex = 0; pageIndex < pdfDoc.PageCount; pageIndex++)
     await pdfPage.RenderToStreamAsync(pngStream, options);
 }
 ```
-
 
 ## Future possibilites
 - WPF viewer control
