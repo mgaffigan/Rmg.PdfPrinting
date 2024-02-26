@@ -21,3 +21,8 @@ IPrintDocumentPackageStatusEvent
 E_FAIL
 S_FALSE
 ID_DOCUMENTPACKAGETARGET_MSXPS
+GUID_ContainerFormatTiff
+DWriteCreateFactory
+IDWriteFactory
+PROPBAG2
+WICTiffCompressionOption

@@ -31,8 +31,28 @@ var pdfPrinter = new PdfPrinter();
 await pdfPrinter.ConvertToXps("input.pdf", "output.xps");
 ```
 
+## Convert to Tiff
+
+You can also use this to convert a PDF to Tiff:
+
+```csharp
+var pdfPrinter = new PdfPrinter();
+await pdfPrinter.ConvertToTiff("input.pdf", "output.tiff");
+```
+
+By default, a color, opaque, 300dpi, ZIP compressed multipage tiff will result.  These settings can be 
+adjusted with `TiffConversionOptions`:
+
+```csharp
+// Produce a fax-style 1bpp TIFF
+await pdfPrinter.ConvertToTiff("input.pdf", "output.tiff", new (Dpi: 150, ColorMode: TiffColorMode.BlackAndWhite);
+
+// Produce a transparent background RGBA tiff
+await pdfPrinter.ConvertToTiff("input.pdf", "output.tiff, new (FillBackground: false));
+```
+
 ## Future possibilites
 - WPF viewer control
-- PDF to PNG/TIFF/any WIC bitmap
+- PDF to PNG/any WIC bitmap
 - netframework support
 - Earlier revisions of netcore

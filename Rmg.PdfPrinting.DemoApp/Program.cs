@@ -33,13 +33,21 @@ internal class Program
         try
         {
             var pdfPrinter = new PdfPrinter();
-            if (!printerName.EndsWith(".xps", StringComparison.OrdinalIgnoreCase))
+            if (printerName.EndsWith(".xps", StringComparison.OrdinalIgnoreCase))
             {
-                await pdfPrinter.Print(printerName, pdfPath);
+                await pdfPrinter.ConvertToXps(pdfPath, printerName);
+            }
+            else if (printerName.EndsWith(".bw.tiff", StringComparison.OrdinalIgnoreCase))
+            {
+                await pdfPrinter.ConvertToTiff(pdfPath, printerName, new(ColorMode: TiffColorMode.BlackAndWhite));
+            }
+            else if (printerName.EndsWith(".tiff", StringComparison.OrdinalIgnoreCase))
+            {
+                await pdfPrinter.ConvertToTiff(pdfPath, printerName, new(FillBackground: false));
             }
             else
             {
-                await pdfPrinter.ConvertToXps(pdfPath, printerName);
+                await pdfPrinter.Print(printerName, pdfPath);
             }
         }
         catch (Exception ex)

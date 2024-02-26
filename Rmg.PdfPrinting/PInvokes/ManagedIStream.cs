@@ -24,7 +24,10 @@ namespace Rmg.PdfPrinting
         {
             var proxy = new byte[cb];
             var result = _ioStream.Read(proxy, 0, (int)cb);
-            *pcbRead = (uint)result;
+            if (pcbRead != null)
+            {
+                *pcbRead = (uint)result;
+            }
             Marshal.Copy(proxy, 0, (nint)pv, (int)*pcbRead);
             return result == cb ? HRESULT.S_OK : HRESULT.S_FALSE;
         }
@@ -34,13 +37,20 @@ namespace Rmg.PdfPrinting
             var proxy = new byte[cb];
             Marshal.Copy((nint)pv, proxy, 0, proxy.Length);
             _ioStream.Write(proxy, 0, proxy.Length);
-            *pcbWritten = cb;
+            if (pcbWritten != null)
+            {
+                *pcbWritten = cb;
+            }
             return HRESULT.S_OK;
         }
 
         unsafe void IStream.Seek(long dlibMove, SeekOrigin dwOrigin, ulong* plibNewPosition)
         {
-            *plibNewPosition = (ulong)_ioStream.Seek(dlibMove, dwOrigin);
+            var result = (ulong)_ioStream.Seek(dlibMove, dwOrigin);
+            if (plibNewPosition != null)
+            {
+                *plibNewPosition = result;
+            }
         }
 
         void IStream.SetSize(ulong libNewSize)

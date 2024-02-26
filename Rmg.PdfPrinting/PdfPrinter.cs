@@ -12,18 +12,20 @@ using Windows.Win32.Graphics.Dxgi;
 using Windows.Win32.Graphics.Imaging.D2D;
 using Windows.Win32.Storage.Xps.Printing;
 using Windows.Win32.System.WinRT.Pdf;
+using Windows.Win32.Graphics.DirectWrite;
 using Windows.Win32.Graphics.Direct2D.Common;
 
 namespace Rmg.PdfPrinting;
 
 public partial class PdfPrinter
 {
-    private ID3D11Device d3dDevice;
-    private IDXGIDevice dxgiDevice;
-    private ID2D1Factory1 d2dFactory;
-    private IWICImagingFactory2 pWic;
-    private ID2D1Device d2dDevice;
-    private ID2D1DeviceContext d2dContextForPrint;
+    private readonly ID3D11Device d3dDevice;
+    private readonly IDXGIDevice dxgiDevice;
+    private readonly ID2D1Factory1 d2dFactory;
+    private readonly IWICImagingFactory2 pWic;
+    private readonly IDWriteFactory dwrite;
+    private readonly ID2D1Device d2dDevice;
+    private readonly ID2D1DeviceContext d2dContextForPrint;
 
     public unsafe PdfPrinter()
     {
@@ -46,6 +48,10 @@ public partial class PdfPrinter
 
         // wic
         pWic = (IWICImagingFactory2)new WICImagingFactory();
+
+        // dwrite
+        PInvoke.DWriteCreateFactory(DWRITE_FACTORY_TYPE.DWRITE_FACTORY_TYPE_SHARED, typeof(IDWriteFactory).GUID, out var oDwrite).ThrowOnFailure();
+        dwrite = (IDWriteFactory)oDwrite;
     }
 
     public Task Print(string printerName, string fileName, string? jobName = null, PrintTicket? ticket = null) 
