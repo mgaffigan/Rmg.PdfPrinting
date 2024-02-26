@@ -51,8 +51,32 @@ await pdfPrinter.ConvertToTiff("input.pdf", "output.tiff", new (Dpi: 150, ColorM
 await pdfPrinter.ConvertToTiff("input.pdf", "output.tiff, new (FillBackground: false));
 ```
 
+## Convert to PDF/JPEG/GIF/etc...
+
+You don't need this library if you are only working with a single page at a time.  The 
+[`PdfPage.RenderToStreamAsync`](https://learn.microsoft.com/en-us/uwp/api/windows.data.pdf.pdfpage.rendertostreamasync?view=winrt-22621#windows-data-pdf-pdfpage-rendertostreamasync(windows-storage-streams-irandomaccessstream-windows-data-pdf-pdfpagerenderoptions))
+method allows you to specify a bitmap encoder and rects:
+
+```csharp
+var pdfFile = await StorageFile.GetFileFromPathAsync(@"C:\drop\example.pdf");
+var pdfDoc = await PdfDocument.LoadFromFileAsync(pdfFile);
+var outDir = await StorageFolder.GetFolderFromPathAsync(@"C:\drop\");
+
+for (uint pageIndex = 0; pageIndex < pdfDoc.PageCount; pageIndex++)
+{
+    var pdfPage = pdfDoc.GetPage(pageIndex);
+    
+    var pngFile = await outDir.CreateFileAsync($"page-{pageIndex}.png", CreationCollisionOption.ReplaceExisting);
+    using var pngStream = await pngFile.OpenAsync(FileAccessMode.ReadWrite);
+    var options = new PdfPageRenderOptions();
+    options.BitmapEncoderId = BitmapEncoder.PngEncoderId;
+    // optionally specify source rectangle or dimensions
+    await pdfPage.RenderToStreamAsync(pngStream, options);
+}
+```
+
+
 ## Future possibilites
 - WPF viewer control
-- PDF to PNG/any WIC bitmap
 - netframework support
 - Earlier revisions of netcore
