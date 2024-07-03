@@ -29,17 +29,21 @@ namespace Rmg.PdfPrinting.WpfDemoApp
         {
             var pdfPath = ((string[])e.Data.GetData(DataFormats.FileDrop)).Single();
 
-            var printer = new PdfPrinter();
             if (sender == btOpenXps)
             {
+                var printer = new PdfPrinter();
                 await printer.ConvertToXps(pdfPath, pdfPath + ".xps");
                 dv.Document = new XpsDocument(pdfPath + ".xps", FileAccess.Read).GetFixedDocumentSequence();
             }
             else if (sender == btOpenImage)
             {
-                await printer.ConvertToTiff(pdfPath, pdfPath + ".tiff");
+                await Task.Run(async () =>
+                {
+                    var printer = new PdfPrinter();
+                    await printer.ConvertToTiff(pdfPath, pdfPath + ".tiff");
+                });
 
-                tiff = new TiffBitmapDecoder(new FileStream(pdfPath + ".tiff", FileMode.Open, FileAccess.Read, FileShare.Read), 
+                tiff = new TiffBitmapDecoder(new FileStream(pdfPath + ".tiff", FileMode.Open, FileAccess.Read, FileShare.Read),
                     BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
 
                 var fd = new FixedDocument();
