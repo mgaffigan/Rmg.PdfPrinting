@@ -18,7 +18,7 @@ namespace Windows.Win32
         {
             void _VtblGap0_1();
 
-            unsafe void Write(int cProperties, in PROPBAG2 pPropBag, object pvarValue);
+            unsafe void Write(int cProperties, in PROPBAG2 pPropBag, in object pvarValue);
 
             void _VtblGap1_3();
         }
