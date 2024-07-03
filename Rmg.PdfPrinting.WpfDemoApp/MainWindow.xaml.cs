@@ -29,6 +29,21 @@ namespace Rmg.PdfPrinting.WpfDemoApp
         {
             var pdfPath = ((string[])e.Data.GetData(DataFormats.FileDrop)).Single();
 
+            await OpenInternal(sender, pdfPath);
+        }
+
+        private async void btOpen_Click(object sender, RoutedEventArgs e)
+        {
+            var ofd = new Microsoft.Win32.OpenFileDialog();
+            ofd.Filter = "PDF Files (*.pdf)|*.pdf|All Files (*.*)|*.*";
+            if (ofd.ShowDialog().GetValueOrDefault())
+            {
+                await OpenInternal(sender, ofd.FileName!);
+            }
+        }
+
+        private async Task OpenInternal(object sender, string pdfPath)
+        {
             if (sender == btOpenXps)
             {
                 var printer = new PdfPrinter();
@@ -73,11 +88,6 @@ namespace Rmg.PdfPrinting.WpfDemoApp
                 e.Effects = DragDropEffects.Copy;
                 e.Handled = true;
             }
-        }
-
-        private void btOpen_Click(object sender, RoutedEventArgs e)
-        {
-
         }
     }
 }
