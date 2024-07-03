@@ -1,0 +1,16 @@
+﻿<Window x:Class="Rmg.PdfPrinting.WpfDemoApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Rmg.PdfPrinting.WpfDemoApp"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Button x:Name="btOpenXps" Content="_Open as XPS" Click="btOpen_Click" Height="23" Width="75" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10"
+                 PreviewDrop="dv_Drop" PreviewDragEnter="dv_DragEnter" AllowDrop="True"/>
+        <Button x:Name="btOpenImage" Content="_Open as TIFF" Click="btOpen_Click" Height="23" Width="75" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="92,10,10,10"
+                 PreviewDrop="dv_Drop" PreviewDragEnter="dv_DragEnter" AllowDrop="True"/>
+        <DocumentViewer Margin="0,43,0,0" x:Name="dv" PreviewDrop="dv_Drop" PreviewDragEnter="dv_DragEnter" AllowDrop="True" />
+    </Grid>
+</Window>
