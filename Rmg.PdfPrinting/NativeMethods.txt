@@ -26,3 +26,6 @@ DWriteCreateFactory
 IDWriteFactory
 PROPBAG2
 WICTiffCompressionOption
+CLSID_D2D1DiscreteTransfer
+CLSID_D2D1Grayscale
+D2D1_DISCRETETRANSFER_PROP

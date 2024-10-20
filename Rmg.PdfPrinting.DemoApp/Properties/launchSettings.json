@@ -2,7 +2,8 @@
   "profiles": {
     "Rmg.WinRTPdfPrinter.DemoApp": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\dev\\gitroot\\D2DPrintSample\\D2DPrintSample\\example.pdf\" \"Microsoft Print to PDF\""
+      "commandLineArgs": "\"C:\\Users\\mrtel\\OneDrive\\Desktop\\Untitled-1.pdf\" \"out.tiff\" /rasterDpi:1200 /outputDpi:300 /bw",
+      "nativeDebugging": true
     }
   }
 }

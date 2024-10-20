@@ -5,14 +5,8 @@ using Windows.Win32.Graphics.DirectWrite;
 
 namespace Rmg.PdfPrinting;
 
-internal class OneBppCommandSinkProxy : CommandSinkToDeviceContextProxy
+internal class OneBppCommandSinkProxy(ID2D1DeviceContext dc) : CommandSinkToDeviceContextProxy(dc)
 {
-    public OneBppCommandSinkProxy(ID2D1DeviceContext dc)
-        : base(dc)
-    {
-        // nop
-    }
-
     public override void SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE textAntialiasMode)
     {
         // nop, want 1bpp
