@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using Windows.Data.Pdf;
 using Windows.Storage;
+using Windows.Win32.Graphics.Direct2D;
 
 namespace Rmg.PdfPrinting;
 
@@ -18,7 +19,8 @@ public partial class PdfPrinter
     public unsafe void ConvertToXps(PdfDocument pdfDoc, Stream xpsStream)
     {
         var target = new XpsPrintDocumentPackageTarget(new ManagedIStream(xpsStream));
-        d2dDevice.CreatePrintControl(pWic, target, null, out var printControl);
+        var printControlOptions = GetPrintControlProperties();
+        d2dDevice.CreatePrintControl(pWic, target, &printControlOptions, out var printControl);
 
         RenderDocToPrintControl(pdfDoc, printControl);
     }

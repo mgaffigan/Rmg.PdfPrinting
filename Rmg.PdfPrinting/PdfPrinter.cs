@@ -9,11 +9,13 @@ using Windows.Win32.Graphics.Direct2D;
 using Windows.Win32.Graphics.Direct3D;
 using Windows.Win32.Graphics.Direct3D11;
 using Windows.Win32.Graphics.Dxgi;
+using Windows.Win32.Graphics.Dxgi.Common;
 using Windows.Win32.Graphics.Imaging.D2D;
 using Windows.Win32.Storage.Xps.Printing;
 using Windows.Win32.System.WinRT.Pdf;
 using Windows.Win32.Graphics.DirectWrite;
 using Windows.Win32.Graphics.Direct2D.Common;
+using Windows.Foundation;
 
 namespace Rmg.PdfPrinting;
 
@@ -108,14 +110,19 @@ public partial class PdfPrinter
             listener = new PrintCompletionSource(cp);
 
             // Create a new print control linked to the package target.
-            var printControlOptions = new D2D1_PRINT_CONTROL_PROPERTIES();
-            printControlOptions.rasterDPI = (float)printOpts.RasterDpi;
-            d2dDevice.CreatePrintControl(pWic, docTarget, printControlOptions, out printControl);
+            d2dDevice.CreatePrintControl(pWic, docTarget, GetPrintControlProperties(), out printControl);
         }
 
         RenderDocToPrintControl(pdfDoc, printControl);
 
         return listener.Task;
+    }
+
+    private D2D1_PRINT_CONTROL_PROPERTIES GetPrintControlProperties()
+    {
+        var printControlOptions = new D2D1_PRINT_CONTROL_PROPERTIES();
+        printControlOptions.rasterDPI = (float)printOpts.RasterDpi;
+        return printControlOptions;
     }
 
     private unsafe void RenderDocToPrintControl(PdfDocument pdfDoc, ID2D1PrintControl printControl)
@@ -128,10 +135,49 @@ public partial class PdfPrinter
         {
             var page = pdfDoc.GetPage(pageIndex);
             var cl = RenderPageToCommandList(pPdfRendererNative, page);
+            if (printOpts.PrintAsBitmap) cl = RasterizeCommandList(cl, page.Size);
             printControl.AddPage(cl, page.Size, null);
         }
 
         printControl.Close();
+    }
+
+    private unsafe ID2D1CommandList RasterizeCommandList(ID2D1CommandList cl, Size size)
+    {
+        var dpi = (float)printOpts.RasterDpi;
+        var width = (uint)(size.Width * (dpi / 96d));
+        var height = (uint)(size.Height * (dpi / 96d));
+
+        var bitmapProperties = new D2D1_BITMAP_PROPERTIES1
+        {
+            pixelFormat = new D2D1_PIXEL_FORMAT(DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE.D2D1_ALPHA_MODE_IGNORE),
+            dpiX = dpi,
+            dpiY = dpi,
+            bitmapOptions = D2D1_BITMAP_OPTIONS.D2D1_BITMAP_OPTIONS_TARGET
+        };
+        d2dContextForPrint.CreateBitmap(new D2D_SIZE_U(width, height), null, 0, bitmapProperties, out ID2D1Bitmap1 bitmap);
+
+        d2dContextForPrint.SetTarget(bitmap);
+        d2dContextForPrint.BeginDraw();
+        d2dContextForPrint.Clear(new D2D1_COLOR_F() { r = 1f, g = 1f, b = 1f, a = 1f });
+        d2dContextForPrint.DrawImage(cl, null, null, 
+            D2D1_INTERPOLATION_MODE.D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR, 
+            D2D1_COMPOSITE_MODE.D2D1_COMPOSITE_MODE_SOURCE_OVER);
+        d2dContextForPrint.EndDraw();
+        d2dContextForPrint.SetTarget(null);
+
+        d2dContextForPrint.CreateCommandList(out var newCl);
+        d2dContextForPrint.SetTarget(newCl);
+        d2dContextForPrint.BeginDraw();
+        d2dContextForPrint.SetDpi(dpi, dpi);
+        d2dContextForPrint.DrawImage(bitmap, null, null, 
+            D2D1_INTERPOLATION_MODE.D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR, 
+            D2D1_COMPOSITE_MODE.D2D1_COMPOSITE_MODE_SOURCE_COPY);
+        d2dContextForPrint.EndDraw();
+        d2dContextForPrint.SetTarget(null);
+        newCl.Close();
+
+        return newCl;
     }
 
     private unsafe ID2D1CommandList RenderPageToCommandList(
@@ -148,6 +194,7 @@ public partial class PdfPrinter
         d2dContextForPrint.BeginDraw();
         DrawPage(d2dContextForPrint, pPdfRendererNative, pdfPage);
         d2dContextForPrint.EndDraw();
+        d2dContextForPrint.SetTarget(null);
 
         commandList.Close();
         return commandList;
@@ -192,6 +239,7 @@ public partial class PdfPrinter
         newDc.BeginDraw();
         cl.Stream(new OneBppCommandSinkProxy(newDc));
         newDc.EndDraw();
+        newDc.SetTarget(null);
 
         newCl.Close();
         return newCl;
@@ -202,18 +250,13 @@ public class PdfPrinterOptions
 {
     public double RasterDpi { get; set; } = 300;
 
-    private double? outputDpi;
-    public double OutputDpi
-    {
-        get => outputDpi ?? RasterDpi;
-        set => outputDpi = double.IsFinite(value) ? value : null;
-    }
-
     public bool FillBackground { get; set; }
 
     public PdfPrinterColorMode ColorMode { get; set; } = PdfPrinterColorMode.Default;
 
     internal bool IsBlackAndWhite => ColorMode == PdfPrinterColorMode.BlackAndWhite;
+
+    public bool PrintAsBitmap { get; set; }
 }
 
 public enum PdfPrinterColorMode

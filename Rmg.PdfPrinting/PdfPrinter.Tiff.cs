@@ -60,7 +60,7 @@ public partial class PdfPrinter
         pWic.CreateImageEncoder(d2dDevice, out var imageEncoder);
 
         var imageParams = new WICImageParameters();
-        var dpi = printOpts.OutputDpi;
+        var dpi = printOpts.RasterDpi;
         imageParams.DpiX = imageParams.DpiY = (float)dpi;
         imageParams.PixelWidth = (uint)Math.Round(size.Width * dpi / 96f);
         imageParams.PixelHeight = (uint)Math.Round(size.Height * dpi / 96f);

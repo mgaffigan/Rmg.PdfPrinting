@@ -15,9 +15,9 @@ internal class Program
             Console.Error.WriteLine(@"Usage: Rmg.PdfPrinting.DemoApp.exe example.pdf ""Printer Name"" [options]
 
     Options:
-        /rasterDpi:300      Sets the DPI of images and other rastered items
-        /outputDpi:300      Sets the DPI of output images (for TIFF output only)
+        /dpi:300            Sets the DPI of images and other rasterized items
         /bw                 Sets binary image output
+        /raster             Rasterize the entire page before printing
         /fill               Fill the background (do not leave transparent)");
             return -1;
         }
@@ -43,15 +43,14 @@ internal class Program
         try
         {
             var opts = new PdfPrinterOptions();
-            var dpiArg = args.FirstOrDefault(a => a.StartsWith("/outputDpi:", StringComparison.OrdinalIgnoreCase));
+            var dpiArg = args.FirstOrDefault(a => a.StartsWith("/dpi:", StringComparison.OrdinalIgnoreCase));
             if (dpiArg is not null)
             {
-                opts.OutputDpi = int.Parse(dpiArg["/outputDpi:".Length..], CultureInfo.InvariantCulture);
+                opts.RasterDpi = int.Parse(dpiArg["/dpi:".Length..], CultureInfo.InvariantCulture);
             }
-            var intermediateDpiArg = args.FirstOrDefault(a => a.StartsWith("/rasterDpi:", StringComparison.OrdinalIgnoreCase));
-            if (intermediateDpiArg is not null)
+            if (args.Any(a => a.Equals("/raster", StringComparison.OrdinalIgnoreCase)))
             {
-                opts.RasterDpi = int.Parse(intermediateDpiArg["/rasterDpi:".Length..], CultureInfo.InvariantCulture);
+                opts.PrintAsBitmap = true;
             }
             if (args.Any(a => a.Equals("/bw", StringComparison.OrdinalIgnoreCase)))
             {
