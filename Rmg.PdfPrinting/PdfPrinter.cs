@@ -211,18 +211,58 @@ public partial class PdfPrinter
         renderParams.IgnoreHighContrast = true;
 
         // This seems to be ignored by the PDF renderer
-        d2dContextForPrint.SetDpi((float)printOpts.RasterDpi, (float)printOpts.RasterDpi);
+        //d2dContextForPrint.SetDpi((float)printOpts.RasterDpi, (float)printOpts.RasterDpi);
         // Instead we'll transform so that 1 unit = 1px
         d2dContextForPrint.SetTransform(D2D_MATRIX_3X2_F.Scale((float)(96d / printOpts.RasterDpi), (float)(96 / printOpts.RasterDpi)));
         renderParams.DestinationWidth = (uint)(pdfPage.Size.Width * (printOpts.RasterDpi / 96d));
         renderParams.DestinationHeight = (uint)(pdfPage.Size.Height * (printOpts.RasterDpi / 96d));
 
-        var pdfContext = !printOpts.IsBlackAndWhite ? (ID2D1DeviceContext)d2dContextForPrint
-            : new OneBppDeviceContext(d2dContextForPrint, FilterOneBppImage);
+        var pdfContext = printOpts.IsBlackAndWhite ? new OneBppDeviceContext(d2dContextForPrint, FilterOneBppImage)
+            : printOpts.UpscaleLowResolutionImages ? new UpscalingDeviceContext(d2dContextForPrint, UpscaleImageCommandList)
+            : d2dContextForPrint;
         pPdfRendererNative.RenderPageToDeviceContext(pdfPage, pdfContext, &renderParams);
 
         // revert transform
         d2dContextForPrint.SetTransform(D2D_MATRIX_3X2_F.Identity);
+    }
+
+    private unsafe ID2D1CommandList UpscaleImageCommandList(ID2D1CommandList cl)
+    {
+        d2dDevice.CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS.D2D1_DEVICE_CONTEXT_OPTIONS_NONE, out var newDc);
+        newDc.CreateCommandList(out var newCl);
+        newDc.SetTarget(newCl);
+        // The dimensions are already transformed in DrawPage to be in 96dpi units
+        //newDc.SetDpi((float)printOpts.RasterDpi, (float)printOpts.RasterDpi);
+
+        newDc.BeginDraw();
+        cl.Stream(new UpscalingComandSinkProxy(newDc, UpscaleBitmap));
+        newDc.EndDraw();
+        newDc.SetTarget(null);
+
+        newCl.Close();
+        return newCl;
+    }
+
+    private unsafe ID2D1Bitmap UpscaleBitmap(ID2D1Bitmap bitmap, D2D_SIZE_U pxSz, D2D_RECT_F sourceRegion)
+    {
+        d2dDevice.CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS.D2D1_DEVICE_CONTEXT_OPTIONS_NONE, out var newDc);
+        var bitmapProperties = new D2D1_BITMAP_PROPERTIES1
+        {
+            pixelFormat = new D2D1_PIXEL_FORMAT(DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE.D2D1_ALPHA_MODE_IGNORE),
+            dpiX = (float)printOpts.RasterDpi,
+            dpiY = (float)printOpts.RasterDpi,
+            bitmapOptions = D2D1_BITMAP_OPTIONS.D2D1_BITMAP_OPTIONS_TARGET
+        };
+        newDc.CreateBitmap(pxSz, null, 0, bitmapProperties, out ID2D1Bitmap1 newBitmap);
+
+        newDc.SetTarget(newBitmap);
+        newDc.BeginDraw();
+        var rect = new D2D_RECT_F(0, 0, pxSz.width, pxSz.height);
+        newDc.DrawBitmap(bitmap, &rect, 1f, D2D1_BITMAP_INTERPOLATION_MODE.D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR, &sourceRegion);
+        newDc.EndDraw();
+        newDc.SetTarget(null);
+
+        return newBitmap;
     }
 
     private unsafe ID2D1CommandList FilterOneBppImage(ID2D1CommandList cl)
@@ -230,6 +270,9 @@ public partial class PdfPrinter
         d2dDevice.CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS.D2D1_DEVICE_CONTEXT_OPTIONS_NONE, out var newDc);
         newDc.CreateCommandList(out var newCl);
         newDc.SetTarget(newCl);
+        // The dimensions are already transformed in DrawPage to be in 96dpi units
+        //newDc.SetDpi((float)printOpts.RasterDpi, (float)printOpts.RasterDpi);
+
         if (printOpts.IsBlackAndWhite)
         {
             newDc.SetAntialiasMode(D2D1_ANTIALIAS_MODE.D2D1_ANTIALIAS_MODE_ALIASED);
@@ -256,7 +299,17 @@ public class PdfPrinterOptions
 
     internal bool IsBlackAndWhite => ColorMode == PdfPrinterColorMode.BlackAndWhite;
 
+    /// <summary>
+    /// Rasterize the entire page before printing. This may work around printer drivers
+    /// not supporting certain features, but will result in lower quality output.
+    /// </summary>
     public bool PrintAsBitmap { get; set; }
+
+    /// <summary>
+    /// PDF requires Nearest Neighbor scaling, but XPS and XPS printing do not support it.
+    /// By upscaling, we <see href="https://github.com/mgaffigan/Rmg.PdfPrinting/issues/3">prevent blurry images</see> in the output.
+    /// </summary>
+    public bool UpscaleLowResolutionImages { get; set; } = true;
 }
 
 public enum PdfPrinterColorMode

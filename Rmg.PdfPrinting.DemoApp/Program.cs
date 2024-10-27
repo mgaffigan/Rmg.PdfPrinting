@@ -17,6 +17,7 @@ internal class Program
     Options:
         /dpi:300            Sets the DPI of images and other rasterized items
         /bw                 Sets binary image output
+        /noUpscale          Do not upscale images to the raster DPI
         /raster             Rasterize the entire page before printing
         /fill               Fill the background (do not leave transparent)");
             return -1;
@@ -51,6 +52,10 @@ internal class Program
             if (args.Any(a => a.Equals("/raster", StringComparison.OrdinalIgnoreCase)))
             {
                 opts.PrintAsBitmap = true;
+            }
+            if (args.Any(a => a.Equals("/noUpscale", StringComparison.OrdinalIgnoreCase)))
+            {
+                opts.UpscaleLowResolutionImages = false;
             }
             if (args.Any(a => a.Equals("/bw", StringComparison.OrdinalIgnoreCase)))
             {
