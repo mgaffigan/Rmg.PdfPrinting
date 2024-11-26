@@ -159,9 +159,10 @@ public partial class PdfPrinter
 
         d2dContextForPrint.SetTarget(bitmap);
         d2dContextForPrint.BeginDraw();
+        d2dContextForPrint.SetDpi(dpi, dpi);
         d2dContextForPrint.Clear(new D2D1_COLOR_F() { r = 1f, g = 1f, b = 1f, a = 1f });
-        d2dContextForPrint.DrawImage(cl, null, null, 
-            D2D1_INTERPOLATION_MODE.D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR, 
+        d2dContextForPrint.DrawImage(cl, null, null,
+            D2D1_INTERPOLATION_MODE.D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
             D2D1_COMPOSITE_MODE.D2D1_COMPOSITE_MODE_SOURCE_OVER);
         d2dContextForPrint.EndDraw();
         d2dContextForPrint.SetTarget(null);
@@ -170,8 +171,8 @@ public partial class PdfPrinter
         d2dContextForPrint.SetTarget(newCl);
         d2dContextForPrint.BeginDraw();
         d2dContextForPrint.SetDpi(dpi, dpi);
-        d2dContextForPrint.DrawImage(bitmap, null, null, 
-            D2D1_INTERPOLATION_MODE.D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR, 
+        d2dContextForPrint.DrawImage(bitmap, null, null,
+            D2D1_INTERPOLATION_MODE.D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
             D2D1_COMPOSITE_MODE.D2D1_COMPOSITE_MODE_SOURCE_COPY);
         d2dContextForPrint.EndDraw();
         d2dContextForPrint.SetTarget(null);
